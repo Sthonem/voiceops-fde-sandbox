@@ -1,5 +1,7 @@
 # VoiceOps FDE Sandbox
 
+[![ci](https://github.com/Sthonem/voiceops-fde-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/Sthonem/voiceops-fde-sandbox/actions/workflows/ci.yml)
+
 A bilingual (Turkish / English) voice and chat agent for a fictional bank's contact
 center, built the way a Forward Deployed Engineer would ship it at a customer site:
 integrated with the customer's systems over REST, guarded in code, resilient to

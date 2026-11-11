@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: tests (SQLite, mock LLM/STT/TTS, no keys)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e ".[dev,anthropic]"
+      - run: pytest -q
+
+  postgres:
+    name: tests (PostgreSQL 16, advisory locks)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: voiceops
+          POSTGRES_DB: voiceops_test
+          POSTGRES_HOST_AUTH_METHOD: trust # throwaway CI database, no secret to keep
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U voiceops -d voiceops_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      VOICEOPS_TEST_DATABASE_URL: postgresql+asyncpg://voiceops@localhost:5432/voiceops_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e ".[dev,anthropic]"
+      - run: pytest -q
+
+  evals:
+    name: eval gate (golden set vs committed baseline)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e .
+      - name: Golden set must not regress
+        run: >
+          python -m voiceops.evals
+          --baseline evals/baselines/mock.json
+          --no-regressions
+          --min intent_accuracy=0.85
+          --out reports
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: reports/

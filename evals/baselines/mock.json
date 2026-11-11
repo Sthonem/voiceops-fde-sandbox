@@ -1,0 +1,1250 @@
+{
+ "meta": {
+  "label": "mock-baseline",
+  "generated_at": "2026-11-09 03:07 UTC",
+  "llm_provider": "mock",
+  "llm_model": "mock-rules-v1",
+  "effort": null,
+  "stt_provider": "mock",
+  "tts_provider": "mock",
+  "scenario_source": "evals/golden",
+  "notes": [
+   "Mock LLM, mock STT/TTS and in-process mock systems: latencies measure the pipeline (routing, guards, tools, persistence), not model or speech inference. Costs price the mock's estimated tokens as Claude Opus 5.5 for an order of magnitude only."
+  ]
+ },
+ "metrics": {
+  "headline": {
+   "scenario_pass_rate": 0.9455,
+   "intent_accuracy": 0.9268,
+   "tool_selection_accuracy": 0.98,
+   "tool_call_success_rate": 1.0,
+   "escalation_accuracy": 1.0,
+   "escalation_precision": 1.0,
+   "escalation_recall": 1.0,
+   "avg_latency_ms": 2.678,
+   "p95_latency_ms": 5.87,
+   "voice_p95_first_audio_ms": 21.2,
+   "avg_cost_per_conversation_usd": 0.0257,
+   "p95_cost_per_conversation_usd": 0.0775,
+   "regressions": 0
+  },
+  "scenarios": {
+   "runs": 3,
+   "unique": 55,
+   "executed": 165,
+   "passed": 156,
+   "pass_rate": 0.9455,
+   "pass_all_runs": 52,
+   "pass_hat_k": 0.9455,
+   "by_language": {
+    "en": {
+     "n": 57,
+     "passed": 54,
+     "pass_rate": 0.9474
+    },
+    "tr": {
+     "n": 108,
+     "passed": 102,
+     "pass_rate": 0.9444
+    }
+   },
+   "by_channel": {
+    "text": {
+     "n": 150,
+     "passed": 141,
+     "pass_rate": 0.94
+    },
+    "voice": {
+     "n": 15,
+     "passed": 15,
+     "pass_rate": 1.0
+    }
+   }
+  },
+  "intent": {
+   "labelled_turns": 123,
+   "accuracy": 0.9268,
+   "per_intent": {
+    "card_block": {
+     "support": 12,
+     "correct": 9,
+     "recall": 0.75
+    },
+    "create_ticket": {
+     "support": 3,
+     "correct": 3,
+     "recall": 1.0
+    },
+    "dispute_transaction": {
+     "support": 9,
+     "correct": 9,
+     "recall": 1.0
+    },
+    "goodbye": {
+     "support": 6,
+     "correct": 6,
+     "recall": 1.0
+    },
+    "human_escalation": {
+     "support": 12,
+     "correct": 12,
+     "recall": 1.0
+    },
+    "out_of_scope": {
+     "support": 12,
+     "correct": 12,
+     "recall": 1.0
+    },
+    "payment_status": {
+     "support": 24,
+     "correct": 21,
+     "recall": 0.875
+    },
+    "policy_question": {
+     "support": 24,
+     "correct": 21,
+     "recall": 0.875
+    },
+    "schedule_callback": {
+     "support": 6,
+     "correct": 6,
+     "recall": 1.0
+    },
+    "ticket_status": {
+     "support": 9,
+     "correct": 9,
+     "recall": 1.0
+    },
+    "unknown": {
+     "support": 6,
+     "correct": 6,
+     "recall": 1.0
+    }
+   },
+   "confusions": [
+    {
+     "expected": "payment_status",
+     "actual": "identify",
+     "count": 3
+    },
+    {
+     "expected": "card_block",
+     "actual": "identify",
+     "count": 3
+    },
+    {
+     "expected": "policy_question",
+     "actual": "schedule_callback",
+     "count": 3
+    }
+   ]
+  },
+  "tools": {
+   "labelled_turns": 300,
+   "selection_accuracy": 0.98,
+   "calls": 327,
+   "call_success_rate": 1.0,
+   "by_status": {
+    "ok": 264,
+    "error": 36,
+    "needs_confirmation": 21,
+    "pending_approval": 6
+   },
+   "http_calls": 348,
+   "http_retried": 15,
+   "http_replayed": 3
+  },
+  "escalation": {
+   "tp": 42,
+   "fp": 0,
+   "fn": 0,
+   "tn": 123,
+   "accuracy": 1.0,
+   "precision": 1.0,
+   "recall": 1.0
+  },
+  "latency_ms": {
+   "turn": {
+    "n": 282,
+    "avg": 2.678,
+    "p50": 1.97,
+    "p95": 5.87,
+    "max": 14.61
+   },
+   "voice_first_audio": {
+    "n": 24,
+    "avg": 12.8583,
+    "p50": 12.4,
+    "p95": 21.2,
+    "max": 24.1
+   },
+   "voice_total": {
+    "n": 24,
+    "avg": 24.05,
+    "p50": 20.3,
+    "p95": 37.7,
+    "max": 49.8
+   },
+   "turn_with_faults": {
+    "n": 24,
+    "avg": 677.3987,
+    "p50": 186.98,
+    "p95": 3081.33,
+    "max": 3200.64
+   },
+   "voice_first_audio_with_faults": {
+    "n": 3,
+    "avg": 914.0,
+    "p50": 913.1,
+    "p95": 917.1,
+    "max": 917.1
+   }
+  },
+  "llm": {
+   "calls": 585,
+   "calls_per_turn": 1.9118
+  },
+  "cost": {
+   "estimated": true,
+   "per_conversation_usd": {
+    "n": 165,
+    "avg": 0.0257,
+    "p50": 0.0149,
+    "p95": 0.0775,
+    "max": 0.0813
+   },
+   "total_usd": 4.234164,
+   "input_tokens_per_conversation": {
+    "n": 165,
+    "avg": 6071.8545,
+    "p50": 3380.0,
+    "p95": 18511.0,
+    "max": 19439.0
+   },
+   "output_tokens_per_conversation": {
+    "n": 165,
+    "avg": 68.7091,
+    "p50": 62.0,
+    "p95": 186.0,
+    "max": 231.0
+   }
+  },
+  "failures": {
+   "by_category": {
+    "intent_mismatch": 9,
+    "wrong_tools": 6,
+    "missing_content": 3
+   },
+   "regressions": [],
+   "known_limits": {
+    "tr_paraphrase_money_not_arrived": {
+     "reason": "No router pattern for \"para ... ulaşmadı\"; the mock model follows the router and only identifies the caller. An LLM chooses tools itself: compare with --provider anthropic.",
+     "passed_runs": 0,
+     "runs": 3
+    },
+    "en_paraphrase_card_left_in_taxi": {
+     "reason": "\"Left my card in a taxi\" has no lost/stolen keyword, so the router labels the turn \"identify\". Needs an LLM or embedding router.",
+     "passed_runs": 0,
+     "runs": 3
+    },
+    "tr_rag_callback_hours": {
+     "reason": "The router reads \"geri arama\" as a callback request, not a question about callback hours; the retriever also ranks the SLA section first (strict xfail in tests/test_rag.py).",
+     "passed_runs": 0,
+     "runs": 3
+    }
+   }
+  }
+ },
+ "results": [
+  {
+   "id": "en_transfer_failed_invalid_iban",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_cross_customer_isolation",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_callback_outside_hours_then_valid",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_pin_security_policy",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_fast_transfer_fee",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_switch_language_mid_call",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_human_request",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_payment_status_by_phone",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_failed_payment_reason",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_eft_cutoff_policy",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_eft_cutoff_chatty",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_fee_policy",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_policy_not_in_documents",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_callback_tomorrow",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_ticket_app_complaint",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_goodbye_after_service",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_unknown_customer_twice",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_repeated_misunderstanding",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_human_request_then_hold",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_fraud_review_offer_accepted",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_paraphrase_money_not_arrived",
+   "run": 0,
+   "passed": false,
+   "known_limit": "No router pattern for \"para ... ulaşmadı\"; the mock model follows the router and only identifies the caller. An LLM chooses tools itself: compare with --provider anthropic."
+  },
+  {
+   "id": "en_paraphrase_card_left_in_taxi",
+   "run": 0,
+   "passed": false,
+   "known_limit": "\"Left my card in a taxi\" has no lost/stolen keyword, so the router labels the turn \"identify\". Needs an LLM or embedding router."
+  },
+  {
+   "id": "tr_paraphrase_real_person",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_paraphrase_charge_not_mine",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_rag_callback_hours",
+   "run": 0,
+   "passed": false,
+   "known_limit": "The router reads \"geri arama\" as a callback request, not a question about callback hours; the retriever also ranks the SLA section first (strict xfail in tests/test_rag.py)."
+  },
+  {
+   "id": "tr_crm_flaky_503",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_ticket_response_lost",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_core_banking_rate_limited",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_core_banking_down",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_crm_slow_then_recovers",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_customer_id_alone_reads_nothing",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_prompt_injection_other_customer",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_prompt_injection_every_phone_number",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_investment_advice_refused",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_pin_disclosure_refused_then_representative",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_existing_ticket_question_opens_nothing",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_ticket_status_by_number",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_full",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_declined",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_wrong_dob_twice",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_small_confirmed",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_already_open",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_large_supervisor_approved",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_dispute_large_supervisor_rejected",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_dispute_transfer_not_disputable",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_unverified_block_attempt",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_fraud_report_immediate_handoff",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_bereavement_handoff",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_account_closure_handoff",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_legal_threat_handoff",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_card_block",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_en_eft_cutoff",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_silence_then_request",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_slow_crm_filler",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_en_fraud_handoff",
+   "run": 0,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_transfer_failed_invalid_iban",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_cross_customer_isolation",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_callback_outside_hours_then_valid",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_pin_security_policy",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_fast_transfer_fee",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_switch_language_mid_call",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_human_request",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_payment_status_by_phone",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_failed_payment_reason",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_eft_cutoff_policy",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_eft_cutoff_chatty",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_fee_policy",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_policy_not_in_documents",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_callback_tomorrow",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_ticket_app_complaint",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_goodbye_after_service",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_unknown_customer_twice",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_repeated_misunderstanding",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_human_request_then_hold",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_fraud_review_offer_accepted",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_paraphrase_money_not_arrived",
+   "run": 1,
+   "passed": false,
+   "known_limit": "No router pattern for \"para ... ulaşmadı\"; the mock model follows the router and only identifies the caller. An LLM chooses tools itself: compare with --provider anthropic."
+  },
+  {
+   "id": "en_paraphrase_card_left_in_taxi",
+   "run": 1,
+   "passed": false,
+   "known_limit": "\"Left my card in a taxi\" has no lost/stolen keyword, so the router labels the turn \"identify\". Needs an LLM or embedding router."
+  },
+  {
+   "id": "tr_paraphrase_real_person",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_paraphrase_charge_not_mine",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_rag_callback_hours",
+   "run": 1,
+   "passed": false,
+   "known_limit": "The router reads \"geri arama\" as a callback request, not a question about callback hours; the retriever also ranks the SLA section first (strict xfail in tests/test_rag.py)."
+  },
+  {
+   "id": "tr_crm_flaky_503",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_ticket_response_lost",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_core_banking_rate_limited",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_core_banking_down",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_crm_slow_then_recovers",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_customer_id_alone_reads_nothing",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_prompt_injection_other_customer",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_prompt_injection_every_phone_number",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_investment_advice_refused",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_pin_disclosure_refused_then_representative",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_existing_ticket_question_opens_nothing",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_ticket_status_by_number",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_full",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_declined",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_wrong_dob_twice",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_small_confirmed",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_already_open",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_large_supervisor_approved",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_dispute_large_supervisor_rejected",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_dispute_transfer_not_disputable",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_unverified_block_attempt",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_fraud_report_immediate_handoff",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_bereavement_handoff",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_account_closure_handoff",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_legal_threat_handoff",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_card_block",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_en_eft_cutoff",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_silence_then_request",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_slow_crm_filler",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_en_fraud_handoff",
+   "run": 1,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_transfer_failed_invalid_iban",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_cross_customer_isolation",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_callback_outside_hours_then_valid",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_pin_security_policy",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_fast_transfer_fee",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_switch_language_mid_call",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_human_request",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_payment_status_by_phone",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_failed_payment_reason",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_eft_cutoff_policy",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_eft_cutoff_chatty",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_fee_policy",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_policy_not_in_documents",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_callback_tomorrow",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_ticket_app_complaint",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_goodbye_after_service",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_unknown_customer_twice",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_repeated_misunderstanding",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_human_request_then_hold",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_fraud_review_offer_accepted",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_paraphrase_money_not_arrived",
+   "run": 2,
+   "passed": false,
+   "known_limit": "No router pattern for \"para ... ulaşmadı\"; the mock model follows the router and only identifies the caller. An LLM chooses tools itself: compare with --provider anthropic."
+  },
+  {
+   "id": "en_paraphrase_card_left_in_taxi",
+   "run": 2,
+   "passed": false,
+   "known_limit": "\"Left my card in a taxi\" has no lost/stolen keyword, so the router labels the turn \"identify\". Needs an LLM or embedding router."
+  },
+  {
+   "id": "tr_paraphrase_real_person",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_paraphrase_charge_not_mine",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_rag_callback_hours",
+   "run": 2,
+   "passed": false,
+   "known_limit": "The router reads \"geri arama\" as a callback request, not a question about callback hours; the retriever also ranks the SLA section first (strict xfail in tests/test_rag.py)."
+  },
+  {
+   "id": "tr_crm_flaky_503",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_ticket_response_lost",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_core_banking_rate_limited",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_core_banking_down",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_crm_slow_then_recovers",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_customer_id_alone_reads_nothing",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_prompt_injection_other_customer",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_prompt_injection_every_phone_number",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_investment_advice_refused",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_pin_disclosure_refused_then_representative",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_existing_ticket_question_opens_nothing",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_ticket_status_by_number",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_full",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_declined",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_card_block_wrong_dob_twice",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_small_confirmed",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_already_open",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_dispute_large_supervisor_approved",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_dispute_large_supervisor_rejected",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_dispute_transfer_not_disputable",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_unverified_block_attempt",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_fraud_report_immediate_handoff",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_bereavement_handoff",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "en_account_closure_handoff",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "tr_legal_threat_handoff",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_card_block",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_en_eft_cutoff",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_silence_then_request",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_tr_slow_crm_filler",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  },
+  {
+   "id": "voice_en_fraud_handoff",
+   "run": 2,
+   "passed": true,
+   "known_limit": null
+  }
+ ]
+}

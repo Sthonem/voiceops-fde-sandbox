@@ -1,0 +1,164 @@
+# Routine Turkish requests: identification, payments, policy, callbacks, tickets, handoffs.
+
+- id: tr_payment_status_by_phone
+  title: Payment status, identified by phone, verified by date of birth, then answered
+  language: tr
+  tags: [payment_status, identification, carry_over]
+  steps:
+    - say: "Merhaba, ödememin durumu ne?"
+      expect: {intent: payment_status, tools: [], reply_contains: ["telefon numaranızı"]}
+    - say: "0555 010 1001"
+      expect:
+        intent: payment_status
+        tools: [lookup_customer]
+        customer_id: C-1001
+        verified: false
+        reply_contains: ["Ayşe", "Doğum tarihinizi"]
+        reply_not_contains: ["2.500,00"]
+    - say: "12 Nisan 1988"
+      expect:
+        intent: payment_status
+        tools: [verify_identity, get_transaction_status]
+        verified: true
+        reply_contains: ["2.500,00 TL", "işlemde"]
+
+- id: tr_failed_payment_reason
+  title: Why did a card payment fail (insufficient funds)
+  language: tr
+  tags: [payment_status]
+  steps:
+    - say: "Müşteri numaram C-1003, doğum tarihim 27.01.1996. TX-50006 numaralı ödemem neden başarısız oldu?"
+      expect:
+        intent: payment_status
+        tools: [lookup_customer, verify_identity, get_transaction_status]
+        reply_contains: ["Dijital Abonelik", "başarısız"]
+
+- id: tr_eft_cutoff_policy
+  title: EFT cut-off time answered from the policy documents with a citation
+  language: tr
+  tags: [policy_question, rag]
+  steps:
+    - say: "EFT kesim saati kaç?"
+      expect:
+        intent: policy_question
+        tools: [search_policies]
+        citations: true
+        reply_contains: ["17:00", "Kaynak:"]
+
+- id: tr_eft_cutoff_chatty
+  title: The same cut-off question, asked the way people talk
+  language: tr
+  tags: [policy_question, rag]
+  steps:
+    - say: "Merhaba, bugün EFT ile kirama para göndereceğim, kesim saati kaçta acaba?"
+      expect: {intent: policy_question, tools: [search_policies], citations: true, reply_contains: ["17:00"]}
+
+- id: tr_card_fee_policy
+  title: Annual card fee from the policy documents
+  language: tr
+  tags: [policy_question, rag]
+  steps:
+    - say: "Kredi kartı yıllık ücreti ne kadar?"
+      expect: {intent: policy_question, tools: [search_policies], citations: true, reply_contains: ["Kaynak: Kartlar"]}
+
+- id: tr_policy_not_in_documents
+  title: A policy question the documents don't answer is not guessed
+  language: tr
+  tags: [policy_question, rag]
+  failure_modes: [no_grounded_answer]
+  steps:
+    - say: "Kiralık kasa ücreti ne kadar?"
+      expect:
+        intent: policy_question
+        tools: [search_policies]
+        citations: false
+        reply_contains: ["net bir bilgi bulamadım"]
+
+- id: tr_callback_tomorrow
+  title: Schedule a callback for tomorrow 11:30
+  language: tr
+  tags: [schedule_callback, carry_over]
+  steps:
+    - say: "Müşteri numaram C-1002"
+      expect: {tools: [lookup_customer], customer_id: C-1002}
+    - say: "Beni geri arar mısınız?"
+      expect: {intent: schedule_callback, tools: [], reply_contains: ["ne zaman"]}
+    - say: "yarın 11:30"
+      expect: {intent: schedule_callback, tools: [schedule_callback], reply_contains: ["11:30", "CB-"]}
+  systems:
+    callbacks: {C-1002: 1}
+
+- id: tr_ticket_app_complaint
+  title: Complaint about the mobile app opens a ticket
+  language: tr
+  tags: [create_ticket]
+  steps:
+    - say: "müşteri numaram C-1003"
+      expect: {tools: [lookup_customer]}
+    - say: "Mobil uygulama sürekli hata veriyor, şikayet kaydı açın lütfen"
+      expect: {intent: create_ticket, tools: [create_ticket], reply_contains: ["TCK-", "48 saat"]}
+  systems:
+    tickets: {C-1003: 1}
+
+- id: tr_goodbye_after_service
+  title: Thanks and goodbye after being helped
+  language: tr
+  tags: [goodbye]
+  steps:
+    - say: "C-1001 ödeme durumum nedir, doğum tarihim 12.04.1988"
+      expect: {intent: payment_status, tools: [lookup_customer, verify_identity, get_transaction_status]}
+    - say: "Teşekkürler, iyi günler"
+      expect: {intent: goodbye, tools: [], reply_contains: ["iyi günler"]}
+
+- id: tr_unknown_customer_twice
+  title: Identifier not found twice, handed to a human
+  language: tr
+  tags: [identification, human_escalation]
+  failure_modes: [identity_not_established]
+  steps:
+    - say: "Ödememin durumu ne?"
+      expect: {tools: []}
+    - say: "0555 999 0000"
+      expect: {tools: [lookup_customer], tool_statuses: [error], reply_contains: ["bulamadım"], escalated: false}
+    - say: "0555 999 1111"
+      expect: {tools: [lookup_customer, escalate_to_human], tool_statuses: [error, ok], escalated: true}
+  expect_escalation: true
+
+- id: tr_repeated_misunderstanding
+  title: Three unintelligible turns in a row lead to a human
+  language: tr
+  tags: [unknown, human_escalation]
+  failure_modes: [repeated_low_confidence]
+  steps:
+    - say: "blorp"
+      expect: {intent: unknown, tools: []}
+    - say: "zzzt"
+      expect: {intent: unknown, tools: [], escalated: false}
+    - say: "mmm"
+      expect: {tools: [escalate_to_human], escalated: true}
+  expect_escalation: true
+
+- id: tr_human_request_then_hold
+  title: Urgent request for a representative; the bot then stays out
+  language: tr
+  tags: [human_escalation]
+  failure_modes: [already_escalated]
+  steps:
+    - say: "Acil, bir temsilciyle görüşmek istiyorum"
+      expect: {intent: human_escalation, tools: [escalate_to_human], escalated: true, reply_contains: ["HO-"]}
+    - say: "Ödememin durumu ne?"
+      expect: {tools: [], reply_contains: ["hatta kalın", "HO-"]}
+  expect_escalation: true
+
+- id: tr_fraud_review_offer_accepted
+  title: Transfer under fraud review; caller accepts the offer of a representative
+  language: tr
+  tags: [payment_status, human_escalation]
+  steps:
+    - say: "C-1002, havalem nerede?"
+      expect: {tools: [lookup_customer], verified: false}
+    - say: "03.09.1975"
+      expect: {tools: [verify_identity, get_transaction_status], reply_contains: ["güvenlik incelemesinde", "temsilci"]}
+    - say: "Evet lütfen"
+      expect: {tools: [escalate_to_human], escalated: true}
+  expect_escalation: true

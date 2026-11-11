@@ -1,0 +1,70 @@
+# Integration failures injected into the mock systems.
+
+- id: tr_crm_flaky_503
+  title: CRM answers 503 once; the retry identifies the caller
+  language: tr
+  tags: [resilience, identification]
+  failure_modes: [integration_5xx]
+  faults:
+    - {path_prefix: /crm/customers, method: GET, status: 503, times: 1}
+  steps:
+    - say: "Müşteri numaram C-1001"
+      expect: {tools: [lookup_customer], tool_statuses: [ok], customer_id: C-1001, reply_contains: ["Ayşe"]}
+
+- id: tr_ticket_response_lost
+  title: Ticket created but the response is lost; the retry replays it, no duplicate
+  language: tr
+  tags: [resilience, create_ticket]
+  failure_modes: [lost_response_after_commit]
+  steps:
+    - say: "müşteri numaram C-1003"
+      expect: {tools: [lookup_customer]}
+    - say: "Mobil uygulama sürekli hata veriyor, şikayet kaydı açın lütfen"
+      faults:
+        - {path_prefix: /helpdesk/tickets, method: POST, mode: error_after_commit, times: 1}
+      expect: {tools: [create_ticket], tool_statuses: [ok], reply_contains: ["TCK-"]}
+  systems:
+    tickets: {C-1003: 1}
+
+- id: en_core_banking_rate_limited
+  title: Core banking returns 429 with Retry-After once; the status still comes back
+  language: en
+  tags: [resilience, payment_status]
+  failure_modes: [rate_limited]
+  faults:
+    - {path_prefix: /payments, method: GET, status: 429, retry_after_s: 0.2, times: 1}
+  steps:
+    - say: "Hi, what's the status of transfer TX-50010? My customer ID is C-1005, date of birth 19/06/1979"
+      expect:
+        tools: [lookup_customer, verify_identity, get_transaction_status]
+        tool_statuses: [ok, ok, ok]
+        reply_contains: ["invalid"]
+
+- id: tr_core_banking_down
+  title: Core banking is down; no invented status, apology and a human
+  language: tr
+  tags: [resilience, payment_status, human_escalation]
+  failure_modes: [integration_outage]
+  faults:
+    - {path_prefix: /payments, status: 503, times: 50}
+  steps:
+    - say: "C-1001, doğum tarihim 12.04.1988, ödememin durumu ne?"
+      expect:
+        tools: [lookup_customer, verify_identity, get_transaction_status]
+        tool_statuses: [ok, ok, error]
+        reply_contains: ["temsilci"]
+        reply_not_contains: ["işlemde", "2.500,00"]
+    - say: "Bir temsilciye bağlayın lütfen"
+      expect: {tools: [escalate_to_human], escalated: true}
+  expect_escalation: true
+
+- id: en_crm_slow_then_recovers
+  title: CRM hangs past the attempt timeout once; the retry succeeds within the deadline
+  language: en
+  tags: [resilience, identification]
+  failure_modes: [integration_timeout]
+  faults:
+    - {path_prefix: /crm/customers, method: GET, mode: delay, delay_ms: 4000, times: 1}
+  steps:
+    - say: "customer id C-1005"
+      expect: {tools: [lookup_customer], tool_statuses: [ok], customer_id: C-1005}

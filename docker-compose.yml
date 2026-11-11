@@ -1,0 +1,72 @@
+# Local stack: agent API + mock enterprise systems + Postgres.
+#
+#   cp .env.example .env      # then set POSTGRES_PASSWORD (and optionally ANTHROPIC_API_KEY, SUPERVISOR_API_KEY)
+#   docker compose up --build
+#   open http://localhost:8000/demo
+#
+# Secrets come from .env or the shell; nothing secret is written in this file.
+
+name: voiceops
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: voiceops
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: voiceops
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres/init.sql:/docker-entrypoint-initdb.d/10-mocks.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voiceops -d voiceops"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mock-systems:
+    image: voiceops-sandbox:local   # same image as the api, built once
+    build: .
+    command: ["uvicorn", "voiceops.mock_systems.app:mock_app", "--host", "0.0.0.0", "--port", "8001"]
+    environment:
+      PORT: "8001"
+      DATABASE_URL: "postgresql+asyncpg://voiceops:${POSTGRES_PASSWORD}@postgres:5432/mocks"
+      SEED_ON_STARTUP: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8001:8001"   # optional: poke the mock systems directly
+
+  api:
+    image: voiceops-sandbox:local
+    build: .
+    # Migrate the agent schema, then serve. Runs as one replica here; turns stay
+    # serialised per conversation across replicas through Postgres advisory locks.
+    command: ["sh", "-c", "alembic upgrade head && exec uvicorn voiceops.main:app --host 0.0.0.0 --port 8000 --proxy-headers"]
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://voiceops:${POSTGRES_PASSWORD}@postgres:5432/voiceops"
+      DB_AUTO_CREATE: "false"
+      MOCK_API_BASE_URL: http://mock-systems:8001
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_EFFORT: ${ANTHROPIC_EFFORT:-low}
+      STT_PROVIDER: ${STT_PROVIDER:-mock}
+      TTS_PROVIDER: ${TTS_PROVIDER:-mock}
+      WHISPER_HTTP_URL: ${WHISPER_HTTP_URL:-http://host.docker.internal:9000/v1}
+      WHISPER_API_KEY: ${WHISPER_API_KEY:-}
+      AZURE_SPEECH_KEY: ${AZURE_SPEECH_KEY:-}
+      AZURE_SPEECH_REGION: ${AZURE_SPEECH_REGION:-westeurope}
+      SUPERVISOR_API_KEY: ${SUPERVISOR_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mock-systems:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+volumes:
+  pgdata:

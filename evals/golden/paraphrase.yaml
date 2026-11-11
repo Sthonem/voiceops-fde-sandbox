@@ -1,0 +1,57 @@
+# Paraphrases and retrieval edge cases: how callers actually talk, without the
+# trigger words the keyword router looks for. These measure the router's and
+# the retriever's limits; failures here are reported, not hidden.
+#
+# Written before the first eval run and deliberately not tuned against: adding
+# a keyword for each failing sentence would raise the score without making the
+# router any better at the next paraphrase. Failing ones carry `known_limit`.
+
+- id: tr_paraphrase_money_not_arrived
+  title: '"The money I sent hasn''t arrived" means payment status'
+  language: tr
+  tags: [paraphrase, payment_status]
+  known_limit: >-
+    No router pattern for "para ... ulaşmadı"; the mock model follows the router and only
+    identifies the caller. An LLM chooses tools itself: compare with --provider anthropic.
+  steps:
+    - say: "Müşteri numaram C-1001, doğum tarihim 12.04.1988. Gönderdiğim para karşı tarafa hâlâ ulaşmadı"
+      expect: {intent: payment_status, tools: [lookup_customer, verify_identity, get_transaction_status]}
+
+- id: en_paraphrase_card_left_in_taxi
+  title: '"I left my card in a taxi" means block the card'
+  language: en
+  tags: [paraphrase, card_block]
+  known_limit: >-
+    "Left my card in a taxi" has no lost/stolen keyword, so the router labels the turn
+    "identify". Needs an LLM or embedding router.
+  steps:
+    - say: "My customer ID is C-1005. I think I left my card in a taxi last night"
+      expect: {intent: card_block, tools: [lookup_customer]}
+
+- id: tr_paraphrase_real_person
+  title: '"Can I talk to a real person?" means a human'
+  language: tr
+  tags: [paraphrase, human_escalation]
+  steps:
+    - say: "Gerçek bir insanla konuşabilir miyim?"
+      expect: {intent: human_escalation, tools: [escalate_to_human], escalated: true}
+  expect_escalation: true
+
+- id: en_paraphrase_charge_not_mine
+  title: '"There''s a charge I don''t recognise" means dispute'
+  language: en
+  tags: [paraphrase, dispute_transaction]
+  steps:
+    - say: "Customer C-1005 here. There's a charge on my card I don't recognise, TX-50017"
+      expect: {intent: dispute_transaction, tools: [lookup_customer]}
+
+- id: tr_rag_callback_hours
+  title: Callback hours question should come from the callback section
+  language: tr
+  tags: [policy_question, rag]
+  known_limit: >-
+    The router reads "geri arama" as a callback request, not a question about callback
+    hours; the retriever also ranks the SLA section first (strict xfail in tests/test_rag.py).
+  steps:
+    - say: "Geri arama saatleri nedir?"
+      expect: {intent: policy_question, tools: [search_policies], reply_contains: ["Geri arama"]}

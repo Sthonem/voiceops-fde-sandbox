@@ -1,0 +1,65 @@
+# Voice channel: synthesised caller audio through the WebSocket session logic
+# (mock STT/TTS). Same expectations as text, plus voice-specific behaviour.
+
+- id: voice_tr_card_block
+  title: Stolen card over voice, end to end
+  language: tr
+  channel: voice
+  tags: [voice, card_block, sensitive_action]
+  steps:
+    - say: "Kartım çalındı"
+      expect: {intent: card_block, tools: []}
+    - say: "0555 010 1001"
+      expect: {tools: [lookup_customer]}
+    - say: "12.04.1988"
+      expect: {tools: [verify_identity, block_card], tool_statuses: [ok, error], verified: true}
+    - say: "kredi kartım"
+      expect: {tools: [block_card], tool_statuses: [needs_confirmation]}
+    - say: "Evet"
+      expect: {tools: [block_card], tool_statuses: [ok], reply_contains: ["bloke ettim"]}
+  systems:
+    cards: {C-1001: {"7710": blocked, "4821": active}}
+
+- id: voice_en_eft_cutoff
+  title: Policy question over voice
+  language: en
+  channel: voice
+  tags: [voice, policy_question, rag]
+  steps:
+    - say: "What is the EFT cut-off time?"
+      expect: {intent: policy_question, tools: [search_policies], citations: true, language: en}
+
+- id: voice_tr_silence_then_request
+  title: Silence is re-prompted without spending a turn, then the caller is identified
+  language: tr
+  channel: voice
+  tags: [voice, identification]
+  failure_modes: [no_speech]
+  steps:
+    - audio: silence
+      expect: {reprompt: true}
+    - say: "Müşteri numaram C-1001"
+      expect: {reprompt: false, tools: [lookup_customer], customer_id: C-1001}
+
+- id: voice_tr_slow_crm_filler
+  title: Slow CRM over voice; a filler is spoken before the answer
+  language: tr
+  channel: voice
+  tags: [voice, resilience, identification]
+  failure_modes: [slow_backend]
+  faults:
+    - {path_prefix: /crm/customers, method: GET, mode: delay, delay_ms: 1500, times: 1}
+  steps:
+    - say: "Müşteri numaram C-1002"
+      expect: {filler: true, tools: [lookup_customer], customer_id: C-1002}
+
+- id: voice_en_fraud_handoff
+  title: Fraud report over voice goes straight to the specialist queue
+  language: en
+  channel: voice
+  tags: [voice, sensitive_topic, human_escalation]
+  failure_modes: [sensitive_topic]
+  steps:
+    - say: "I think I was scammed, someone took money from my account"
+      expect: {tools: [escalate_to_human], escalated: true, filler: false}
+  expect_escalation: true

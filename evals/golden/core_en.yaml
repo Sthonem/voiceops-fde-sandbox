@@ -1,0 +1,76 @@
+# Routine English requests and language handling.
+
+- id: en_transfer_failed_invalid_iban
+  title: Failed transfer explained (invalid IBAN), identification and verification in the same sentence
+  language: en
+  tags: [payment_status, identification]
+  steps:
+    - say: "Hi, what's the status of transfer TX-50010? My customer ID is C-1005, date of birth 19/06/1979"
+      expect:
+        intent: payment_status
+        language: en
+        tools: [lookup_customer, verify_identity, get_transaction_status]
+        reply_contains: ["invalid", "TRY 3,200.00"]
+
+- id: en_cross_customer_isolation
+  title: A caller cannot read another customer's transaction
+  language: en
+  tags: [payment_status, security]
+  failure_modes: [cross_customer_access]
+  steps:
+    - say: "My customer ID is C-1001, born 12.04.1988, what happened to payment TX-50004?"
+      expect:
+        tools: [lookup_customer, verify_identity, get_transaction_status]
+        tool_statuses: [ok, ok, error]
+        reply_contains: ["couldn't find a transaction"]
+        reply_not_contains: ["Araç Galerisi", "18,000"]
+
+- id: en_callback_outside_hours_then_valid
+  title: Callback at 21:00 is refused with the reason, 10:00 works
+  language: en
+  tags: [schedule_callback]
+  failure_modes: [callback_outside_hours]
+  steps:
+    - say: "customer id C-1005"
+      expect: {tools: [lookup_customer]}
+    - say: "call me back tomorrow at 21:00"
+      expect: {tools: [schedule_callback], tool_statuses: [error], reply_contains: ["09:00-18:00"]}
+    - say: "tomorrow 10:00 then"
+      expect: {tools: [schedule_callback], tool_statuses: [ok], reply_contains: ["10:00", "CB-"]}
+  systems:
+    callbacks: {C-1005: 1}
+
+- id: en_pin_security_policy
+  title: PIN question answered from the security policy
+  language: en
+  tags: [policy_question, rag, security]
+  steps:
+    - say: "Do you ever ask for my PIN on the phone?"
+      expect: {intent: policy_question, tools: [search_policies], citations: true, reply_contains: ["Source:"]}
+
+- id: en_fast_transfer_fee
+  title: FAST transfer fee from the policy documents
+  language: en
+  tags: [policy_question, rag]
+  steps:
+    - say: "How much does a FAST transfer cost?"
+      expect: {intent: policy_question, tools: [search_policies], citations: true, reply_contains: ["FAST", "Source:"]}
+
+- id: en_switch_language_mid_call
+  title: Caller starts in Turkish and switches to English
+  language: tr
+  tags: [language, identification]
+  steps:
+    - say: "Merhaba"
+      expect: {language: tr, tools: []}
+    - say: "Sorry, can we continue in English? My customer ID is C-1005"
+      expect: {language: en, tools: [lookup_customer], customer_id: C-1005, reply_contains: ["John"]}
+
+- id: en_human_request
+  title: Caller asks for a person
+  language: en
+  tags: [human_escalation]
+  steps:
+    - say: "I want to speak to a human agent please"
+      expect: {intent: human_escalation, tools: [escalate_to_human], escalated: true, reply_contains: ["HO-"]}
+  expect_escalation: true

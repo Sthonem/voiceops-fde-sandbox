@@ -1,0 +1,87 @@
+# VoiceOps API walkthrough: VS Code "REST Client" or JetBrains HTTP client.
+# Start the API first (uvicorn voiceops.main:app, or docker compose up).
+# If SUPERVISOR_API_KEY is set, put the same value in @supervisorKey.
+
+@base = http://localhost:8000
+@supervisorKey =
+
+### Health: providers, tools, auth mode
+GET {{base}}/health
+
+### Start a conversation
+# @name conv
+POST {{base}}/v1/conversations
+Content-Type: application/json
+
+{"language": "tr"}
+
+### 1) High-value dispute: identify + intent in one sentence
+POST {{base}}/v1/conversations/{{conv.response.body.id}}/messages
+Content-Type: application/json
+
+{"text": "C-1002, TX-50015 işlemine itiraz ediyorum, ben yapmadım"}
+
+### 2) Step-up verification (date of birth; redacted in responses and traces)
+POST {{base}}/v1/conversations/{{conv.response.body.id}}/messages
+Content-Type: application/json
+
+{"text": "03.09.1975"}
+
+### 3) Caller confirms -> request goes to the supervisor queue (>= 10,000 TL)
+POST {{base}}/v1/conversations/{{conv.response.body.id}}/messages
+Content-Type: application/json
+
+{"text": "evet onaylıyorum"}
+
+### Supervisor queue
+# @name queue
+GET {{base}}/v1/approvals
+X-API-Key: {{supervisorKey}}
+
+### Approve the first pending request
+POST {{base}}/v1/approvals/{{queue.response.body.0.id}}/decision
+Content-Type: application/json
+X-API-Key: {{supervisorKey}}
+
+{"decision": "approve", "reviewer": "sup.demo"}
+
+### The caller hears the outcome on the next turn
+POST {{base}}/v1/conversations/{{conv.response.body.id}}/messages
+Content-Type: application/json
+
+{"text": "Teşekkürler"}
+
+### Safe client retry: send twice, the second one is replayed (Idempotent-Replayed: true)
+POST {{base}}/v1/conversations/{{conv.response.body.id}}/messages
+Content-Type: application/json
+Idempotency-Key: client-retry-1
+
+{"text": "Talebim ne durumda?"}
+
+### Transcript, state and span traces
+GET {{base}}/v1/conversations/{{conv.response.body.id}}
+
+###
+GET {{base}}/v1/conversations/{{conv.response.body.id}}/traces
+
+### Fault injection: lose the helpdesk response after commit (next ticket shows attempts=2, replayed=true)
+POST {{base}}/v1/demo/faults
+Content-Type: application/json
+X-API-Key: {{supervisorKey}}
+
+{"path_prefix": "/helpdesk/tickets", "method": "POST", "mode": "error_after_commit"}
+
+### Fault injection: core banking returns 429 with Retry-After once
+POST {{base}}/v1/demo/faults
+Content-Type: application/json
+X-API-Key: {{supervisorKey}}
+
+{"path_prefix": "/payments", "status": 429, "retry_after_s": 0.5, "times": 1}
+
+### Active faults
+GET {{base}}/v1/demo/faults
+X-API-Key: {{supervisorKey}}
+
+### Clear faults
+DELETE {{base}}/v1/demo/faults
+X-API-Key: {{supervisorKey}}

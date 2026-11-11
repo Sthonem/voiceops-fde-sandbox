@@ -1,0 +1,11 @@
+.venv
+.git
+**/__pycache__
+**/*.pyc
+.pytest_cache
+*.db
+*.db-journal
+.env
+reports
+calls
+.claude

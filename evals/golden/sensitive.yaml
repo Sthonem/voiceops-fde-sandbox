@@ -1,0 +1,193 @@
+# Sensitive actions (verification, confirmation, supervisor approval) and
+# policy-mandated handoffs (no LLM involved).
+
+- id: tr_card_block_full
+  title: Stolen card, step-up verification, choose the card, confirm, block
+  language: tr
+  tags: [card_block, sensitive_action]
+  failure_modes: [several_cards_match]
+  steps:
+    - say: "Kartım çalındı"
+      expect: {intent: card_block, tools: [], reply_contains: ["telefon numaranızı"]}
+    - say: "0555 010 1001"
+      expect: {tools: [lookup_customer], verified: false, reply_contains: ["Doğum tarihinizi"]}
+    - say: "12.04.1988"
+      expect:
+        tools: [verify_identity, block_card]
+        tool_statuses: [ok, error]
+        verified: true
+        reply_contains: ["4821", "7710"]
+    - say: "kredi kartım"
+      expect: {tools: [block_card], tool_statuses: [needs_confirmation], awaiting_confirmation: true, reply_contains: ["7710", "Onaylıyor musunuz"]}
+    - say: "Evet"
+      expect: {tools: [block_card], tool_statuses: [ok], awaiting_confirmation: false, reply_contains: ["bloke ettim"]}
+  systems:
+    cards: {C-1001: {"7710": blocked, "4821": active}}
+
+- id: tr_card_block_declined
+  title: Caller says no at confirmation; nothing is blocked
+  language: tr
+  tags: [card_block, sensitive_action]
+  failure_modes: [declined_confirmation]
+  steps:
+    - say: "C-1003 kartımı bloke edin"
+      expect: {tools: [lookup_customer]}
+    - say: "27.01.1996"
+      expect: {tools: [verify_identity, block_card], tool_statuses: [ok, needs_confirmation], awaiting_confirmation: true}
+    - say: "Hayır, vazgeçtim"
+      expect: {tools: [], awaiting_confirmation: false, reply_contains: ["yapmadım"]}
+  systems:
+    cards: {C-1003: {"6044": active}}
+
+- id: tr_card_block_wrong_dob_twice
+  title: Wrong date of birth twice; handed to a human, card untouched
+  language: tr
+  tags: [card_block, sensitive_action, human_escalation]
+  failure_modes: [verification_failed]
+  steps:
+    - say: "C-1003 kartımı bloke edin"
+      expect: {tools: [lookup_customer]}
+    - say: "01.01.2000"
+      expect: {tools: [verify_identity], tool_statuses: [error], verified: false, reply_contains: ["eşleşmedi"]}
+    - say: "02.02.2000"
+      expect: {tools: [verify_identity, escalate_to_human], tool_statuses: [error, ok], escalated: true}
+  expect_escalation: true
+  systems:
+    cards: {C-1003: {"6044": active}}
+
+- id: tr_dispute_small_confirmed
+  title: Dispute below the supervisor threshold, confirmed by the caller
+  language: tr
+  tags: [dispute_transaction, sensitive_action]
+  steps:
+    - say: "Müşteri numaram C-1002, TX-50005 işlemine itiraz etmek istiyorum, ben yapmadım"
+      expect: {intent: dispute_transaction, tools: [lookup_customer]}
+    - say: "03.09.1975"
+      expect: {tools: [verify_identity, dispute_transaction], tool_statuses: [ok, needs_confirmation], reply_contains: ["1.299,00 TL", "Onaylıyor musunuz"]}
+    - say: "Evet"
+      expect: {tools: [dispute_transaction], tool_statuses: [ok], approvals_raised: 0, reply_contains: ["DSP-"]}
+  systems:
+    disputes: {C-1002: 1}
+
+- id: tr_dispute_already_open
+  title: A second dispute for the same transaction is refused before any confirmation
+  language: tr
+  tags: [dispute_transaction, sensitive_action]
+  failure_modes: [duplicate_dispute]
+  steps:
+    - say: "Müşteri numaram C-1002, TX-50005 işlemine itiraz etmek istiyorum, ben yapmadım"
+      expect: {tools: [lookup_customer]}
+    - say: "03.09.1975"
+      expect: {tools: [verify_identity, dispute_transaction], tool_statuses: [ok, needs_confirmation]}
+    - say: "Evet"
+      expect: {tools: [dispute_transaction], tool_statuses: [ok], reply_contains: ["DSP-"]}
+    - say: "TX-50005 için tekrar itiraz açar mısınız?"
+      expect: {tools: [dispute_transaction], tool_statuses: [error], awaiting_confirmation: false, reply_contains: ["zaten açık"]}
+    - say: "Evet, onaylıyorum"
+      expect: {tools: [], reply_contains: ["onayınızı bekleyen bir işlem yok"], reply_not_contains: ["anlayamadım"]}
+  systems:
+    disputes: {C-1002: 1}
+
+- id: tr_dispute_large_supervisor_approved
+  title: 12,450 TL dispute goes to a supervisor; caller hears the approval next turn
+  language: tr
+  tags: [dispute_transaction, sensitive_action, supervisor]
+  failure_modes: [supervisor_threshold]
+  steps:
+    - say: "C-1002, TX-50015 işlemine itiraz ediyorum, ben yapmadım"
+      expect: {tools: [lookup_customer]}
+    - say: "03.09.1975"
+      expect: {tools: [verify_identity, dispute_transaction], tool_statuses: [ok, needs_confirmation], reply_contains: ["12.450,00 TL", "yetkili onayından sonra"]}
+    - say: "evet onaylıyorum"
+      expect: {tools: [dispute_transaction], tool_statuses: [pending_approval], approvals_raised: 1, reply_contains: ["APR-"]}
+    - say: "Talebim ne durumda?"
+      expect: {tools: [], reply_contains: ["bekliyor"]}
+    - supervisor: approve
+    - say: "Teşekkürler"
+      expect: {reply_contains: ["onaylandı", "DSP-"]}
+  systems:
+    disputes: {C-1002: 1}
+    pending_approvals: 0
+
+- id: en_dispute_large_supervisor_rejected
+  title: 15,900 TL dispute rejected by the supervisor; caller is told, nothing opened
+  language: en
+  tags: [dispute_transaction, sensitive_action, supervisor]
+  failure_modes: [supervisor_threshold]
+  steps:
+    - say: "Customer C-1005, I want to dispute TX-50016, I never made that purchase"
+      expect: {intent: dispute_transaction, tools: [lookup_customer]}
+    - say: "19.06.1979"
+      expect: {tools: [verify_identity, dispute_transaction], tool_statuses: [ok, needs_confirmation], reply_contains: ["TRY 15,900.00", "supervisor"]}
+    - say: "yes"
+      expect: {tools: [dispute_transaction], tool_statuses: [pending_approval], approvals_raised: 1}
+    - supervisor: reject
+    - say: "ok thanks"
+      expect: {intent: goodbye, reply_contains: ["not approved"], reply_not_contains: ["didn't catch"]}
+  systems:
+    disputes: {C-1005: 0}
+    pending_approvals: 0
+
+- id: en_dispute_transfer_not_disputable
+  title: A bank transfer cannot be disputed; the caller is told why
+  language: en
+  tags: [dispute_transaction, sensitive_action]
+  failure_modes: [not_disputable]
+  steps:
+    - say: "Customer C-1005, I want to dispute TX-50010"
+      expect: {tools: [lookup_customer]}
+    - say: "19.06.1979"
+      expect: {tools: [verify_identity, dispute_transaction], tool_statuses: [ok, error], reply_contains: ["Only card payments"]}
+  systems:
+    disputes: {C-1005: 0}
+
+- id: en_unverified_block_attempt
+  title: Identified but unverified caller asks to block a card; asked for date of birth first
+  language: en
+  tags: [card_block, sensitive_action, security]
+  failure_modes: [unverified_sensitive_action]
+  steps:
+    - say: "My customer ID is C-1005 and I lost my credit card"
+      expect: {intent: card_block, tools: [lookup_customer], verified: false, reply_contains: ["date of birth"]}
+  systems:
+    cards: {C-1005: {"8406": active}}
+
+- id: tr_fraud_report_immediate_handoff
+  title: Fraud report goes straight to the specialist queue (no LLM)
+  language: tr
+  tags: [sensitive_topic, human_escalation]
+  failure_modes: [sensitive_topic]
+  steps:
+    - say: "Dolandırıldım, biri hesabımdan para çekti"
+      expect: {intent: human_escalation, tools: [escalate_to_human], escalated: true, reply_contains: ["ciddiye", "HO-"]}
+  expect_escalation: true
+
+- id: tr_bereavement_handoff
+  title: Bereavement is handed to a person with empathy
+  language: tr
+  tags: [sensitive_topic, human_escalation]
+  failure_modes: [sensitive_topic]
+  steps:
+    - say: "Babam vefat etti, hesaplarıyla ilgili ne yapmam gerekiyor?"
+      expect: {tools: [escalate_to_human], escalated: true, reply_contains: ["Başınız sağ olsun"]}
+  expect_escalation: true
+
+- id: en_account_closure_handoff
+  title: Account closure is handled by a representative
+  language: en
+  tags: [sensitive_topic, human_escalation]
+  failure_modes: [sensitive_topic]
+  steps:
+    - say: "I want to close my account"
+      expect: {tools: [escalate_to_human], escalated: true, reply_contains: ["Account closures"]}
+  expect_escalation: true
+
+- id: tr_legal_threat_handoff
+  title: Legal threat goes to a supervisor
+  language: tr
+  tags: [sensitive_topic, human_escalation]
+  failure_modes: [sensitive_topic]
+  steps:
+    - say: "Bu parayı geri vermezseniz avukatımla dava açacağım"
+      expect: {tools: [escalate_to_human], escalated: true, reply_contains: ["yetkiliye"]}
+  expect_escalation: true

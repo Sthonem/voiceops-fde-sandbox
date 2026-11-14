@@ -267,10 +267,11 @@ python -m voiceops.evals --baseline evals/baselines/mock.json --no-regressions -
 ```
 
 ```text
-running 47 scenarios × 1 with mock …
-  ok   en_transfer_failed_invalid_iban  (31 ms)
+running 55 scenarios × 1 with mock …
+  ok   en_transfer_failed_invalid_iban  (39 ms)
   …
-  lim  tr_rag_callback_hours  (9 ms)
-pass 93.6% · intent 90.6% · tools 97.6% · escalation 100.0% · p95 5.7 ms · cost/conv $0.0204
+  lim  tr_rag_callback_hours  (12 ms)
+  …
+pass 94.5% · intent 92.7% · tools 98.0% · escalation 100.0% · p95 8.05 ms · cost/conv $0.0257
 report: reports/eval-mock-….md
 ```

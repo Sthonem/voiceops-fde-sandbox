@@ -13,7 +13,8 @@ identifier and transaction in this repository is synthetic.
    helpdesk, scheduling and contact-center systems through REST, exactly as it
    would at a customer site. The mock systems are a separate FastAPI app.
 3. **Everything runs offline.** Mock LLM, mock STT and mock TTS providers make the
-   whole system (and CI) work with zero API keys. Real providers are drop-in.
+   whole system (and CI) work with zero API keys. Adapters for real providers are written and tested
+   against fakes; see Deliberate shortcuts.
 4. **Measure, then claim.** Every turn records latency, tool outcomes and token
    usage so the README's numbers come from the eval harness, not from memory.
 

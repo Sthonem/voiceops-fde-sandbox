@@ -3,16 +3,23 @@
 [![ci](https://github.com/Sthonem/voiceops-fde-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/Sthonem/voiceops-fde-sandbox/actions/workflows/ci.yml)
 
 A bilingual (Turkish / English) voice and chat agent for a fictional bank's contact
-center, built the way a Forward Deployed Engineer would ship it at a customer site:
-integrated with the customer's systems over REST, guarded in code, resilient to
-flaky backends, observable per turn, and measured with a golden eval set.
+center. It calls mock CRM, core banking, helpdesk and scheduling systems over REST,
+enforces identity checks, confirmations and supervisor approvals in code, retries
+timeouts and 5xx responses from those systems (with idempotency keys on writes),
+records a trace for every turn, and is measured with a golden eval set.
 **All data is synthetic; every external system is a mock.**
+
+![Web demo with mock LLM, STT and TTS: a call disputing a TRY 15,900 charge, the agent view with intent and timings, the supervisor queue, and the fault-injection buttons](docs/img/web-demo.jpg)
 
 > All five milestones are done ([docs/ROADMAP.md](docs/ROADMAP.md)). Text and voice
 > channels share one agent pipeline. Docker Compose (API, mock systems, Postgres),
-> a web demo, 55 golden eval scenarios with a CI gate, and 255 tests passing on
-> SQLite and Postgres 16. Runs fully offline with mock LLM, STT and TTS; Claude
-> Opus 5.5, Whisper and Azure neural TTS are drop-in.
+> a web demo, 55 golden eval scenarios with a CI gate, and 256 tests. In CI: 254
+> passed, 1 skipped, 1 xfailed on SQLite; 255 passed, 1 xfailed on PostgreSQL 16
+> (the skipped test is the Postgres-only advisory-lock test). Runs fully offline
+> with mock LLM, STT and TTS. Adapters for Claude Opus 5.5, Whisper (local and
+> HTTP) and Azure neural TTS are written and tested against fakes (fake HTTP
+> transports, a fake Whisper model); they have not been run against the live
+> services or a real Whisper model.
 
 ## Problem
 
@@ -71,8 +78,6 @@ locks. Details: [docs/architecture.md](docs/architecture.md) ·
 [docs/data-model.md](docs/data-model.md).
 
 ## Demo
-
-![Web demo: a voice call in progress, the agent's tool calls, and the supervisor queue](docs/img/web-demo.jpg)
 
 `http://localhost:8000/demo` runs a call through the real voice pipeline. The page
 can simulate caller audio for the mock STT, use the browser's speech recognition,
@@ -150,9 +155,11 @@ by turn and for side effects in the mock systems. Mock baseline, 3 runs:
 | Voice time to first audio, p95 | 21 ms; ~914 ms with a 1.5 s backend stall (filler) | end of caller speech → first audio byte |
 | Cost per conversation, avg / p95 | $0.026 / $0.078 | estimated tokens priced as Claude Opus 5.5 |
 
-Measured by an outside harness too: Agent Eval & Data Health Hub (a separate
-project) ran its own 27-case golden set against this API over HTTP. The first run (2026-11-08) passed VoiceOps' own evals but found
-four real problems; the second run (2026-11-09), after the fixes below, passed
+Measured by an outside harness too:
+[Agent Eval & Data Health Hub](https://github.com/Sthonem/agent-eval-data-health-hub)
+(a separate repository) ran its own 27-case golden set against this API over HTTP,
+with the mock LLM. The first run (2026-11-08) found four real problems that VoiceOps'
+own evals had not caught; the second run (2026-11-09), after the fixes below, passed
 27/27 with explicit refusals and a prompt version on every turn.
 
 How to read it:
@@ -343,7 +350,7 @@ This writes a Markdown and a JSON report to `reports/`.
 CI gate: fail on any regression against the accepted baseline, or on a metric below the bar:
 
 ```bash
-python -m voiceops.evals --baseline evals/baselines/mock.json --no-regressions --min intent_accuracy=0.85 --max p95_latency_ms=500
+python -m voiceops.evals --baseline evals/baselines/mock.json --no-regressions --min intent_accuracy=0.85
 ```
 
 The same set against Claude (real requests, real cost):

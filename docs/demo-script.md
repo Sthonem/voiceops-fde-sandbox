@@ -25,7 +25,7 @@ docker compose up --build        # or: uvicorn voiceops.main:app
 | 0:12–0:45 | **Start call** (TR). Click the chips: *Kartım çalındı* → *0555 010 1001* → *12.04.1988* → *kredi kartım* → *Evet* | "Stolen card. It asks who I am, then for a second factor, because blocking is irreversible. Two cards match, so it asks which one. It reads back what it will do and waits for an explicit yes." Point at **Agent view**: "Each turn shows the intent, every tool call with its status, and time to first audio. The bot starts talking on the first sentence while the rest is still being written." |
 | 0:45–1:15 | **End call**, **Start call**, switch language to EN. Chips: *Customer C-1005, I want to dispute TX-50016* → *19.06.1979* → *yes*. In **Supervisor queue** click **Approve**, then type *ok thanks* | "15,900 lira is above the threshold, so the agent can't open this dispute: a named supervisor has to. The core banking mock would refuse it as well, as a second line of defence. Approve, and on the caller's next turn they hear the outcome, exactly once." |
 | 1:15–1:40 | **Break the backend → Helpdesk: lose response after commit**. New call (TR): type *müşteri numaram C-1003*, then *Mobil uygulama sürekli hata veriyor, şikayet kaydı açın lütfen*. Then arm **CRM: 1.5 s stall** and type *müşteri numaram C-1001* in a new call | "The helpdesk created the ticket but the response was lost. The retry carries an idempotency key, so the tool shows 2 attempts and an idempotent replay, and there is one ticket, not two. When the CRM stalls, the caller hears 'one moment' instead of silence." |
-| 1:40–2:00 | Eval report headline | "48 golden conversations in Turkish and English, voice included, run on every change. The only failures are known router limits on paraphrases, flagged as such. The eval also caught a real bug: a safe-deposit-box question answered from the card-fee section. That's fixed, and the baseline diff proves nothing regressed. Next step at a customer: swap the mocks for their APIs and run the same evals against Claude." |
+| 1:40–2:00 | Eval report headline | "55 golden conversations in Turkish and English, voice included, run on every change. The only failures are known router limits on paraphrases, flagged as such. The eval also caught a real bug: a safe-deposit-box question answered from the card-fee section. That's fixed, and the baseline diff proves nothing regressed. Next step at a customer: swap the mocks for their APIs and run the same evals against Claude." |
 
 ## If something goes wrong on camera
 
@@ -47,5 +47,5 @@ docker compose up --build        # or: uvicorn voiceops.main:app
 - *Data protection?* Audio is never stored; traces, logs and API responses are
   redacted (phone, date of birth, national ID); local Whisper keeps audio on-prem.
 - *Numbers on a real model?* `python -m voiceops.evals --provider anthropic`
-  runs the same 48 conversations against Claude Opus 5.5 and reports latency
+  runs the same 55 conversations against Claude Opus 5.5 and reports latency
   and real cost next to the mock baseline.

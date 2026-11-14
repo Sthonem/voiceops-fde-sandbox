@@ -175,7 +175,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    yaml[(evals/golden/*.yaml<br/>47 scenarios)] --> runner[EvalRunner]
+    yaml[(evals/golden/*.yaml<br/>55 scenarios)] --> runner[EvalRunner]
     runner -->|fresh seeded DB<br/>per scenario| app[Agent app<br/>in-process]
     runner -->|REST turns| app
     runner -->|synthesised audio| voice[VoiceSession]
